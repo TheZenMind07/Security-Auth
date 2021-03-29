@@ -9,7 +9,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 // mongoose.connect("mongodb://localhost:27017/userDB", {
-mongoose.connect("mongodb+srv://rk-mongo:Rajkp@cluster0.vbjj1.mongodb.net/todoList", {
+mongoose.connect("mongodb+srv://rk-mongo:Rajkp@cluster0.vbjj1.mongodb.net/userDB", {
     urlencoded: true,
     useNewUrlParser: true,
     useUnifiedTopology: true
@@ -19,6 +19,9 @@ const userSchema = new mongoose.Schema({
     email: String,
     password: String
 });
+
+var secret = "process.env.SOME_LONG_UNGUESSABLE_STRING";
+userSchema.plugin(encrypt, { secret: secret, encryptedFields: ["password"] });
 
 const User = mongoose.model("User", userSchema);
 
