@@ -3,6 +3,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const encrypt = require("mongoose-encryption");
+require("dotenv").config();
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -20,7 +21,7 @@ const userSchema = new mongoose.Schema({
     password: String
 });
 
-var secret = "process.env.SOME_LONG_UNGUESSABLE_STRING";
+var secret = process.env.SECRET;
 userSchema.plugin(encrypt, { secret: secret, encryptedFields: ["password"] });
 
 const User = mongoose.model("User", userSchema);
