@@ -3,8 +3,10 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const encrypt = require("mongoose-encryption");
-require("dotenv").config();
-const md5 = require("md5");
+// require("dotenv").config();
+// const md5 = require("md5");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -44,20 +46,26 @@ app.post("/login", function (req, res) {
         if (err) {
             console.log(err);
         } else {
-            if (foundUser.password === md5(req.body.password)) {
+            bcrypt.compare(req.body.password, foundUser.password, function (err, result) {
+                result == true;
                 res.render("secrets");
-            }
+            });
+            // if (foundUser.password === req.body.password) {
+            //     res.render("secrets");
+            // }
         }
     });
 });
 
 app.post("/register", function (req, res) {
-    let user = new User({
-        email: req.body.username,
-        password: md5(req.body.password)
+    bcrypt.hash(req.body.password, saltRounds, function (err, hash) {
+        let user = new User({
+            email: req.body.username,
+            password: hash
+        });
+        user.save();
+        res.render("secrets");
     });
-    user.save();
-    res.render("secrets");
 });
 
 app.listen(3000, function () {
