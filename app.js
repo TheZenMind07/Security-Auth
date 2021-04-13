@@ -7,6 +7,7 @@ const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const GitHubStrategy = require("passport-github2").Strategy;
 require("dotenv").config();
 const findOrCreate = require("mongoose-findorcreate");
 // const md5 = require("md5");
@@ -66,6 +67,21 @@ passport.use(
     )
 );
 
+passport.use(
+    new GitHubStrategy(
+        {
+            clientID: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+            callbackURL: "http://localhost:3000/auth/github/secrets"
+        },
+        function (accessToken, refreshToken, profile, done) {
+            User.findOrCreate({ githubId: profile.id }, function (err, user) {
+                return done(err, user);
+            });
+        }
+    )
+);
+
 // passport.use(
 //     new FacebookStrategy(
 //         {
@@ -108,16 +124,23 @@ app.get("/auth/google/secrets", passport.authenticate("google", { failureRedirec
     res.redirect("/secrets");
 });
 
-app.get("/auth/facebook", passport.authenticate("facebook"));
+app.get("/auth/github", passport.authenticate("github", { scope: ["user:email"] }));
 
-app.get(
-    "/auth/facebook/secrets",
-    passport.authenticate("facebook", { failureRedirect: "/login" }),
-    function (req, res) {
-        // Successful authentication, redirect home.
-        res.redirect("/secrets");
-    }
-);
+app.get("/auth/github/secrets", passport.authenticate("github", { failureRedirect: "/login" }), function (req, res) {
+    // Successful authentication, redirect home.
+    res.redirect("/secrets");
+});
+
+// app.get("/auth/facebook", passport.authenticate("facebook"));
+
+// app.get(
+//     "/auth/facebook/secrets",
+//     passport.authenticate("facebook", { failureRedirect: "/login" }),
+//     function (req, res) {
+//         // Successful authentication, redirect home.
+//         res.redirect("/secrets");
+//     }
+// );
 
 app.get("/register", function (req, res) {
     res.render("register");
